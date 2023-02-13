@@ -1,12 +1,7 @@
 # C++ Concurrent Programming
-# Question: 
 
-Is it clear what would happen if a thread blocked on a std::condition_variable receives a notification but the lock on the associated mutex is not yet released, 
-and the lock will be released let's say 15 seconds later? Would the thread wait for the lock to be released or is the situation undefined?
+In a situation where three threads are waiting on a std::condition_variable and notify_one() is invoked, one of the waiting threads will be unblocked. Which thread is unblocked is determined by the implementation, and it is not specified in the standard.
 
-# Answer:
-It will continue to wait / wait_for until it can reacquire the lock.
+Typically, implementations use some kind of queue to keep track of the waiting threads, and the first thread in the queue will be the one that is unblocked. However, the order in which the threads are added to the queue and the order in which they are unblocked can depend on various factors, such as the scheduling policy of the operating system and the performance characteristics of the hardware.
 
-When std::condition_variable::wait and wait_for returns (for whatever reason), the lock is held again, so you don't have to worry about that.
-
-It can even return from wait without having gotten any notifications (spurious wake-ups) - but, no matter what, the lock is reacquired when the call returns.
+It's important to note that the other two threads will continue to wait on the condition variable until they are unblocked, either by another call to notify_one() or by a call to notify_all(). The behavior of the waiting threads and the synchronization mechanisms you are using is critical to ensure that the shared data protected by the mutex is in a consistent state and that the threads behave as expected.
